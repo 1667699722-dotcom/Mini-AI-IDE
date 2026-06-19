@@ -15,15 +15,53 @@ function_schemas = {
                 "required": ["a", "b"]
             }
         }
+    },
+    "sub": {
+        "type": "function",
+        "function": {
+            "name": "sub",
+            "description": "Subtract two numbers (a minus b)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "a": {"type": "integer", "description": "The first number (minuend)"},
+                    "b": {"type": "integer", "description": "The second number (subtrahend)"}
+                },
+                "required": ["a", "b"]
+            }
+        }
+    },
+    "mul": {
+        "type": "function",
+        "function": {
+            "name": "mul",
+            "description": "Multiply two numbers",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "a": {"type": "integer", "description": "The first number"},
+                    "b": {"type": "integer", "description": "The second number"}
+                },
+                "required": ["a", "b"]
+            }
+        }
+    },
+    "div": {
+        "type": "function",
+        "function": {
+            "name": "div",
+            "description": "Divide two numbers (a over b)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "a": {"type": "integer", "description": "The first number"},
+                    "b": {"type": "integer", "description": "The second number"}
+                },
+                "required": ["a", "b"]
+            }
+        }
     }
 }
-
-def call_ollama_sdk(prompt):
-    response = ollama.chat(
-        model='gemma3:1b',  #小模型用来选出函数就行
-        messages=[{'role': 'user', 'content': prompt}]
-    )
-    return response['message']['content']
 
 def add(a: int, b: int) -> int:
     """
@@ -38,10 +76,62 @@ def add(a: int, b: int) -> int:
     """
     return a + b
 
+def sub(a: int, b: int) -> int:
+    """
+    Subtract two numbers (a minus b)
+    
+    Args:
+        a: The first number (minuend)
+        b: The second number (subtrahend)
+    
+    Returns:
+        The difference of a minus b
+    """
+    return a - b
+
+def mul(a: int, b: int) -> int:
+    """
+    Multiply two numbers
+    
+    Args:
+        a: The first number
+        b: The second number
+    
+    Returns:
+        The product of a and b
+    """
+    return a * b
+
+def div(a: int, b: int) -> int:
+    """
+    Divide two numbers (a over b)
+    
+    Args:
+        a: The first number
+        b: The second number
+    
+    Returns:
+        The quotient of a over b
+    """
+    return a / b
+
+def call_ollama_sdk(prompt):
+    response = ollama.chat(
+        model='qwen3:4b',  #小模型用来选出函数就行
+        messages=[{'role': 'user', 'content': prompt}]
+    )
+    return response['message']['content']
+
 def call_ollama_with_functions():
     while True:
         messages = [{'role': 'user', 'content': msg}]
-        tool_name = call_ollama_sdk(msg + ",请在如下函数中选择一个最合适的返回，仅返回如下:add、sub中一个")
+        desmeg = [
+            "add means add two numbers together",  # 你的第一句
+            "sub means subtract two numbers",  # 再加一条
+            "mul means multiply two numbers",  # 再加第三条
+            "div means divide two numbers"  # 再加第四条
+        ]
+        tool_name = call_ollama_sdk(msg + ",请在如下函数中选择一个最合适的返回，仅返回如下:add、sub中一个!"+"\n".join(desmeg))
         tool_name = tool_name.strip().lower()
         #print("工具名:", tool_name)
         
@@ -49,7 +139,7 @@ def call_ollama_with_functions():
         tools = []
         if tool_name in function_schemas:
             tools.append(function_schemas[tool_name])  # ✅ 字符串映射到schema并添加！
-            #print(f"成功把 {tool_name} 加入 tools 列表，现在 tools = {tools}")
+            print(f"成功把 {tool_name} 加入 tools 列表，现在 tools = {tools}")
             
         response = ollama.chat(
             model='qwen3:4b',  # 需要用支持 tool calling 的模型
@@ -77,4 +167,9 @@ if __name__ == "__main__":
         if msg.lower() in ['quit', 'exit', 'q']:  # 支持退出
             print("再见！")
             break
-        call_ollama_with_functions()
+        flag=call_ollama_sdk(msg + "请判断用户输入是否为数学计算问题，只返回 yes 或 no，不要其他任何文字！")
+        if 'yes' in flag.lower():
+            call_ollama_with_functions()
+        else:
+            print("这是一个非计算问题。")
+            print(call_ollama_sdk(msg))
