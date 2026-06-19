@@ -99,6 +99,20 @@ TOOLS_SCHEMA = [
                 "required": ["a", "b"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "log",
+            "description": "Calculate the logarithm of a number",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "a": {"type": "number", "description": "The number to log"}
+                },
+                "required": ["a"]
+            }
+        }
     }
 ]
 
@@ -130,6 +144,10 @@ def pow(a: float, b: float) -> float:
     """Calculate a number to the power of another number."""
     return a ** b
 
+def log(a: float) -> float:
+    """Calculate the logarithm of a number."""
+    return math.log(a)
+
 
 
 # 函数映射表：函数名 -> 函数对象（供动态调用）
@@ -140,4 +158,5 @@ FUNCTIONS = {
     "div": div,
     "sqrt": sqrt,
     "pow": pow,
+    "log": log,
 }
