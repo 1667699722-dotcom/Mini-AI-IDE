@@ -202,6 +202,28 @@ TOOLS_SCHEMA = [
     {
         "type": "function",
         "function": {
+            "name": "hash_file",
+            "description": "Calculate hash of a file from workspace. Supports large files (reads in chunks to avoid memory issues).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filename": {
+                        "type": "string",
+                        "description": "Filename in workspace to hash"
+                    },
+                    "algorithm": {
+                        "type": "string",
+                        "description": "Hash algorithm to use (md5, sha1, sha256, sha512). Default: sha256",
+                        "enum": ["md5", "sha1", "sha256", "sha512"]
+                    }
+                },
+                "required": ["filename"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "write_file",
             "description": "Write content to a file in the workspace directory. If the file exists, it will be overwritten. Use this to save data, notes, or Python scripts. IMPORTANT: When writing Python code can import reusable functions from tools via 'from tools import <function_name>'. Pick appropriate functions from tools.FUNCTIONS — e.g. add, sub, mul, div, sqrt, pow, log, sort_array, write_file, read_file, run_python. Reuse them instead of reimplementing.",
             "parameters": {
@@ -309,6 +331,18 @@ def compare_strings(a: str, b: str) -> bool:
     """Compare two strings using constant-time comparison."""
     return hmac.compare_digest(a, b)
 
+def hash_file(filename: str, algorithm: str = "sha256") -> str:
+    """Calculate hash of a file from workspace."""
+    path = _safe_path(filename)
+    hash_obj = hashlib.new(algorithm)
+    chunk_size = 65536  # 64 KB chunks
+    with open(path, "rb") as f:
+        chunk = f.read(chunk_size)
+        while chunk:
+            hash_obj.update(chunk)
+            chunk = f.read(chunk_size)
+    return hash_obj.hexdigest()
+
 def write_file(filename: str, content: str) -> str:
     """Write content to a file in workspace/. Returns a confirmation message."""
     path = _safe_path(filename)
@@ -364,6 +398,7 @@ FUNCTIONS = {
     "sort_array": sort_array,
     "hash_string": hash_string,
     "compare_strings": compare_strings,
+    "hash_file": hash_file,
     "write_file": write_file,
     "read_file": read_file,
     "run_python": run_python,
