@@ -1,3 +1,6 @@
 source venv/bin/activate
-# 打包！
-pyinstaller --onefile --name ai-assistant --hidden-import rich --hidden-import ollama CLI.py
+export API_KEY="sk-621cf817ee7749f39692acd8eaebb616"
+export BASE_URL="https://api.deepseek.com/v1"
+export MODEL="deepseek-chat"
+python3 ollamasdk.py
+
