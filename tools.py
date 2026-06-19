@@ -113,6 +113,28 @@ TOOLS_SCHEMA = [
                 "required": ["a"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sort_array",
+            "description": "Sort an array of numbers in ascending or descending order. Returns the sorted array.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "arr": {
+                        "type": "array",
+                        "description": "The array of numbers to sort",
+                        "items": {"type": "number"}
+                    },
+                    "descending": {
+                        "type": "boolean",
+                        "description": "If true, sort from largest to smallest. Default is false (ascending)."
+                    }
+                },
+                "required": ["arr"]
+            }
+        }
     }
 ]
 
@@ -145,8 +167,12 @@ def pow(a: float, b: float) -> float:
     return a ** b
 
 def log(a: float) -> float:
-    """Calculate the logarithm of a number."""
+    """Calculate the natural logarithm of a number."""
     return math.log(a)
+
+def sort_array(arr: list, descending: bool = False) -> list:
+    """Sort an array of numbers in ascending (default) or descending order."""
+    return sorted(arr, reverse=descending)
 
 
 
@@ -159,4 +185,5 @@ FUNCTIONS = {
     "sqrt": sqrt,
     "pow": pow,
     "log": log,
+    "sort_array": sort_array,
 }
