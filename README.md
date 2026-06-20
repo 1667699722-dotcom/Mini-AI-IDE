@@ -14,7 +14,7 @@
 
 ### 中文
 
-toolkit-agent 是一个极简的 **AI 代理框架。核心思想很简单：
+toolkit-agent 是一个极简的 **AI 代理框架**，采用 **大脑 + 小脑** 的生物神经系统类比设计：
 
 1. **定义工具** — 写一个 Python 函数，附上一份 JSON schema 描述
 2. **模型选工具** — 大模型根据用户问题，从工具列表中选择合适的工具
@@ -25,7 +25,7 @@ toolkit-agent 是一个极简的 **AI 代理框架。核心思想很简单：
 
 ### English
 
-toolkit-agent is a minimal **LLM agent framework**. The core idea is simple:
+toolkit-agent is a minimal **LLM agent framework** designed using a **brain + cerebellum** biological nervous system analogy:
 
 1. **Define tools** — Write a Python function with a JSON schema description
 2. **Model chooses tools** — The LLM picks appropriate tools based on user input
@@ -40,21 +40,29 @@ This is exactly how OpenAI Code Interpreter, Claude Tools, and similar products 
 
 ### 中文
 
-项目由两个核心文件组成：
+项目采用 **大脑 + 小脑** 的生物神经系统类比架构：
 
-- **toolkit_agent.py** — 与大模型对话的主程序。它负责把用户问题发给模型、解析模型返回的工具调用请求、在本地执行工具、把执行结果回传给模型，然后循环这个过程直到模型给出最终回答。
-- **tools.py** — 工具模块。所有可被模型调用的函数、以及它们的 JSON schema 描述，都集中定义在这里。
+| 部件 / Component | 代码 / Code | 类比 / Analogy | 职责 / Responsibility |
+|---|---|---|---|
+| 🧠 **大脑** | `toolkit_agent.py` + 大模型 | 总指挥 | 任务理解、分解、调度工具 |
+| 🗺️ **地图小脑** | `get_position` | 定位/地图 | 位置名 → 坐标查询 |
+| 🦵 **运动小脑** | `navigate_grid` | 腿 | 空间导航、路径规划 |
+| 🤚 **动作小脑** | `do_task` | 手 | 原子化动作执行 |
 
-简单来说，`toolkit_agent.py` 负责调度，`tools.py` 负责干活。你可以随意往 `tools.py` 里加新工具（数学计算、文件读写、外部 API、甚至用 ctypes 引入 C 扩展），主程序一行都不用改。
+简单来说，`toolkit_agent.py` 负责调度（大脑），`tools.py` 负责干活（各种小脑）。你可以随意往 `tools.py` 里加新工具（数学计算、文件读写、外部 API、甚至用 ctypes 引入 C 扩展），主程序一行都不用改。
 
 ### English
 
-The project consists of two core files:
+The project uses a **brain + cerebellum** biological nervous system analogy:
 
-- **toolkit_agent.py** — The main program that chats with the LLM. It sends user questions to the model, parses tool-call requests, executes tools locally, sends results back to the model, and loops until the model produces a final answer.
-- **tools.py** — The tools module. All callable functions and their JSON schema descriptions are defined here in one place.
+| Component | Code | Analogy | Responsibility |
+|---|---|---|---|
+| 🧠 **Brain** | `toolkit_agent.py` + LLM | Commander | Task understanding, decomposition, tool orchestration |
+| 🗺️ **Map cerebellum** | `get_position` | Location/Map | Name → coordinate lookup |
+| 🦵 **Motor cerebellum** | `navigate_grid` | Legs | Spatial navigation, path planning |
+| 🤚 **Action cerebellum** | `do_task` | Hands | Atomic action execution |
 
-In short, `toolkit_agent.py` handles orchestration, and `tools.py` handles the actual work. You can freely add new tools to `tools.py` (math operations, file I/O, external API calls, even C extensions via ctypes) without touching the main program.
+In short, `toolkit_agent.py` handles orchestration (the brain), and `tools.py` handles the actual work (various cerebellums). You can freely add new tools to `tools.py` (math operations, file I/O, external API calls, even C extensions via ctypes) without touching the main program.
 
 ---
 
@@ -103,6 +111,14 @@ The entire process is transparent to the user — you just ask questions, and th
 | `log(a)` | 自然对数 / Natural logarithm |
 | `sort_array(arr, descending)` | 数组排序 / Sort array |
 
+### 安全与哈希 / Security & Hash
+
+| 工具 / Tool | 说明 / Description |
+|---|---|
+| `hash_string(text, algorithm)` | 字符串哈希 / Hash a string (md5, sha1, sha256, sha512) |
+| `hash_file(filename, algorithm)` | 文件哈希 / Hash a file |
+| `compare_strings(a, b)` | 安全字符串比较（防时序攻击）/ Safe string comparison (timing-attack proof) |
+
 ### 文件与代码执行 / File & Code Interpreter
 
 | 工具 / Tool | 说明 / Description |
@@ -112,6 +128,14 @@ The entire process is transparent to the user — you just ask questions, and th
 | `run_python(filename)` | 执行 Python 脚本（子进程，有超时保护）/ Execute Python script in subprocess with timeout |
 
 > **重要**：脚本内部可以直接 `from tools import add, sqrt, sort_array, ...` 来复用已有的工具函数，无需重写。
+
+### 导航与动作 / Navigation & Actions
+
+| 工具 / Tool | 类比 / Analogy | 说明 / Description |
+|---|---|---|
+| `get_position(location_name, map_data)` | 🗺️ 地图/定位 | 查询位置坐标（位置名→坐标） / Look up coordinates by name |
+| `navigate_grid(start, target, grid_size, obstacles)` | 🦵 腿 | 网格导航 / Navigate on a grid |
+| `do_task(instruction, env_data)` | 🤚 手 | 原子化动作执行 / Execute atomic actions |
 
 ---
 
@@ -132,7 +156,7 @@ cd toolkit-agent
 pip3 install openai
 ```
 
-3. **配置 API 密钥**（任选其一：
+3. **配置 API 密钥**（任选其一）：
 
 ```bash
 # DeepSeek
@@ -206,40 +230,31 @@ python3 toolkit_agent.py
 ```
 你: 100加200，再把结果乘以3，最后开平方
 第 1 轮
-  [工具调用] add({'arr': [100, 200, 300, 400]})
-  [执行结果] 1000
+  [工具调用] add({'arr': [100, 200]})
+  [执行结果] 300
 第 2 轮
-  [工具调用] mul({'a': 900, 'b': 3})
-  [执行结果] 2700
+  [工具调用] mul({'a': 300, 'b': 3})
+  [执行结果] 900
 第 3 轮
-  [工具调用] sqrt({'a': 2700})
-  [执行结果] 51.96152422706632
-AI: 最终结果约为 51.96。
+  [工具调用] sqrt({'a': 900})
+  [执行结果] 30.0
+AI: 最终结果约为 30。
 ```
 
-### 示例 2：数组排序与求和 / Array operations
+### 示例 2：导航与动作任务 / Navigation and actions task
 
 ```
-你: 把 [5, 2, 8, 1, 9, 3] 从大到小排序，然后求和
-  [工具调用] sort_array({'arr': [5, 2, 8, 1, 9, 3], 'descending': True})
-  [执行结果] [9, 8, 5, 3, 2, 1]
-  [工具调用] add({'arr': [9, 8, 5, 3, 2, 1]})
-  [执行结果] 28
-AI: 排序后是 [9, 8, 5, 3, 2, 1]，总和是 28。
-```
-
-### 示例 3：Code Interpreter（写脚本并执行）
-
-```
-你: 给我计算 sin(3) + cos(3k)*2，k 从 1 到 10 的和
+你: 去厨房拿一杯水，放到桌子上
 第 1 轮
-  [工具调用] write_file({'filename': 'calc_sum.py', 'content': 'import math\n\ntotal = 0\nfor k in range(1, 11):\n    term = math.sin(3) + math.cos(3*k) * 2\n    total += term\nprint(f"k=1..10 的和 = {total:.10f}")\n'})
-  [执行结果] File written: calc_sum.py (xxx chars, saved in workspace/)
+  [工具调用] get_position({'location_name': 'kitchen'})
+  [执行结果] Location 'kitchen' is at [3,5]
 第 2 轮
-  [工具调用] run_python({'filename': 'calc_sum.py'})
-  [执行结果] [ran calc_sum.py — OK]
-k=1..10 的和 = 0.4953854217
-AI: 最终求和结果约为 0.495。脚本已保存在 workspace/calc_sum.py。
+  [工具调用] navigate_grid({'start': [0,0], 'target': [3,5]})
+  [执行结果] (导航日志...)
+第 3 轮
+  [工具调用] do_task({'instruction': 'grab a cup of water'})
+  [执行结果] (动作执行日志...)
+...
 ```
 
 ---

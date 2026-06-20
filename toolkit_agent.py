@@ -26,7 +26,35 @@ def chat(user_input: str):
     主对话函数：支持多轮工具调用（多步推理）
     流程：用户输入 -> 循环：{模型判断是否调工具 -> 执行 -> 回传结果} -> 返回自然语言回答
     """
-    messages = [{"role": "user", "content": user_input}]
+    system_prompt = """
+You are a general-purpose task execution assistant. Follow these rules:
+
+1. TASK DECOMPOSITION FIRST:
+   When you get a coarse task, DO NOT just call do_task once.
+   DECOMPOSE it into multiple FINE-GRAINED, EXECUTABLE steps first,
+   then execute them one by one.
+
+2. CLEAR TOOL ROLES:
+   - 🗺️ get_position = MAP: look up [x,y] coordinates for a location name
+   - 🦵 navigate_grid = LEGS: spatial navigation (moving from A to B)
+   - 🤚 do_task = HANDS: single atomic action (pick up, put down, press button, confirm, analyze, etc.)
+   - Always choose the right tool for each step!
+
+3. IF NO COORDINATES, USE MAP FIRST:
+   If you only have a location name (e.g. "trash_bin"), call get_position FIRST to get coordinates before navigating!
+
+3. STATUS CODE UNDERSTANDING:
+   - 10 = step complete, move to next step
+   - 11 = invalid task/step, ask user for clarification
+   - 00/01 = still executing, wait for completion
+
+4. KEEP TRACK:
+   After each step completes, summarize progress and what remains.
+   """
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_input}
+    ]
     max_rounds = 100  # 防止无限循环
     n=1
     for _ in range(max_rounds):
