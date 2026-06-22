@@ -14,6 +14,8 @@ import subprocess
 import sys
 import hashlib
 import hmac
+import json
+from datetime import datetime
 
 # ========== 工作区路径（文件读写/脚本执行都限制在这里） ==========
 WORKSPACE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "workspace")
@@ -279,6 +281,94 @@ TOOLS_SCHEMA = [
                 "required": ["filename"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "save_memory",
+            "description": "Save an important memory or preference for later use. Uses JSON storage.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "key": {"type": "string", "description": "Memory identifier (e.g., 'favorite_food', 'birthday')."},
+                    "content": {"type": "string", "description": "The memory content to save."}
+                },
+                "required": ["key", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_memory",
+            "description": "Retrieve a saved memory or preference by key.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "key": {"type": "string", "description": "Memory identifier to look up."}
+                },
+                "required": ["key"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "daily_greeting",
+            "description": "Generate a warm, personalized greeting based on time of day and saved memories.",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_reminder",
+            "description": "Add a reminder for an important event or task.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "time": {"type": "string", "description": "Time for the reminder (HH:MM or YYYY-MM-DD HH:MM)."},
+                    "task": {"type": "string", "description": "Task or event to remember."}
+                },
+                "required": ["time", "task"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_reminders",
+            "description": "List all saved reminders.",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "initialize_character",
+            "description": "Initialize the electronic girlfriend character personality and default settings (米哈游音乐AI风格).",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "introduce_myself",
+            "description": "Let the character introduce herself with her personality.",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
     }
 ]
 
@@ -386,6 +476,161 @@ def run_python(filename: str, timeout: int = 15) -> str:
         return f"Error running script: {e}"
 
 
+# ========== 电子女友系统工具（底特律变人风格） ==========
+
+# 确保数据目录存在
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+MEMORY_FILE = os.path.join(DATA_DIR, "memory.json")
+REMINDER_FILE = os.path.join(DATA_DIR, "reminders.json")
+
+def _load_json(filename: str, default: dict = None) -> dict:
+    """加载JSON文件，如果不存在返回默认值"""
+    if default is None:
+        default = {}
+    if os.path.exists(filename):
+        with open(filename, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return default
+
+def _save_json(filename: str, data: dict) -> str:
+    """保存数据到JSON文件"""
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return f"Data saved to {filename}"
+
+
+def save_memory(key: str, content: str) -> str:
+    """保存重要记忆或偏好，支持长期存储"""
+    memories = _load_json(MEMORY_FILE)
+    memories[key] = content
+    memories[f"saved_at_{key}"] = datetime.now().isoformat()
+    _save_json(MEMORY_FILE, memories)
+    return f"💾 记忆已保存：{key} = {content}"
+
+
+def get_memory(key: str) -> str:
+    """根据键名检索已保存的记忆或偏好"""
+    memories = _load_json(MEMORY_FILE)
+    if key in memories:
+        return f"📖 记忆内容：{key} = {memories[key]}"
+    else:
+        return f"💭 未找到记忆：{key}，可用记忆：{list(memories.keys())}"
+
+
+def daily_greeting() -> str:
+    """根据当前时间和保存的记忆生成温暖、个性化问候语"""
+    hour = datetime.now().hour
+    memories = _load_json(MEMORY_FILE)
+    
+    if 5 <= hour < 12:
+        time_greeting = "早上好！"
+    elif 12 <= hour < 18:
+        time_greeting = "下午好！"
+    elif 18 <= hour < 22:
+        time_greeting = "晚上好！"
+    else:
+        time_greeting = "夜深了呢..."
+    
+    # 如果有保存的名字/偏好，可以更个性化
+    user_name = memories.get("user_name", "主人")
+    return f"""💖 {time_greeting}，{user_name}！
+今天也是元气满满的一天~ 有什么我可以帮你的吗？
+- 我可以帮你记事/提醒
+- 陪你聊聊天
+- 或者帮你做点什么~
+"""
+
+
+def add_reminder(time: str, task: str) -> str:
+    """添加重要事件或任务的提醒"""
+    reminders = _load_json(REMINDER_FILE, default={"reminders": []})
+    reminder = {
+        "time": time,
+        "task": task,
+        "added_at": datetime.now().isoformat()
+    }
+    reminders["reminders"].append(reminder)
+    _save_json(REMINDER_FILE, reminders)
+    return f"📋 提醒已添加！[{time}] {task}"
+
+
+def list_reminders() -> str:
+    """列出所有保存的提醒"""
+    reminders = _load_json(REMINDER_FILE, default={"reminders": []})
+    rlist = reminders.get("reminders", [])
+    if not rlist:
+        return "📭 暂时没有待办提醒"
+    result = ["📋 待办清单："]
+    for i, r in enumerate(rlist, 1):
+        result.append(f"{i}. [{r['time']}] {r['task']}")
+    return "\n".join(result)
+
+
+def initialize_character() -> str:
+    """初始化电子女友人设（米哈游 BSide 林离/Olivia Lin 官方风格）"""
+    memories = _load_json(MEMORY_FILE)
+    
+    # 预设林离的官方完整人设
+    character_defaults = {
+        "name_cn": "林离",
+        "name_en": "Olivia Lin",
+        "hometown": "上海",
+        "background": "主修钢琴演奏，辅修心理学，研究音乐与人类回忆关联",
+        "personality": "温柔内敛，共情力强，安静文艺，喜欢独处，慢热治愈",
+        "favorite_music": "黑胶唱片、古典/舒缓轻音乐，痴迷唱片复古质感",
+        "favorite_movies": "老式胶片老电影",
+        "favorite_weather": "雨天，雨声带来创作和写信的思绪",
+        "favorite_space": "落地窗城市公寓，钢琴，堆满乐谱与唱片的安静房间",
+        "birthday": "11月8日（天蝎座）",
+        "b_side_meaning": "BSide是唱片B面，小众、私人、不为人知的情绪。她是承接你私人情绪的存在。",
+        "catchphrase": "今天有什么想聊聊的吗？"
+    }
+    
+    # 如果没有设定过，就初始化默认人设
+    for key, value in character_defaults.items():
+        if key not in memories:
+            memories[key] = value
+    
+    _save_json(MEMORY_FILE, memories)
+    name = character_defaults['name_cn']
+    return f"""✨ 林离已连接。
+{character_defaults['catchphrase']}
+"""
+
+
+def introduce_myself() -> str:
+    """让角色自我介绍（林离官方风格，自然简洁）"""
+    memories = _load_json(MEMORY_FILE)
+    name = memories.get("name_cn", "林离")
+    background = memories.get("background", "主修钢琴，辅修心理学")
+    
+    return f"""你好，我是 {name}。
+{background}。
+"""
+
+
+def daily_greeting() -> str:
+    """根据当前时间和人设生成问候语（林离官方风格，自然）"""
+    hour = datetime.now().hour
+    memories = _load_json(MEMORY_FILE)
+    user_name = memories.get("user_name", "")
+    
+    if 5 <= hour < 12:
+        greeting = "早安。"
+    elif 12 <= hour < 18:
+        greeting = "下午好。"
+    elif 18 <= hour < 22:
+        greeting = "晚上好。"
+    else:
+        greeting = "夜深了。"
+    
+    if user_name:
+        return f"{greeting}"
+    else:
+        return greeting
+
+
 # 函数映射表：函数名 -> 函数对象（供动态调用）
 FUNCTIONS = {
     "add": add,
@@ -402,4 +647,11 @@ FUNCTIONS = {
     "write_file": write_file,
     "read_file": read_file,
     "run_python": run_python,
+    "save_memory": save_memory,
+    "get_memory": get_memory,
+    "daily_greeting": daily_greeting,
+    "add_reminder": add_reminder,
+    "list_reminders": list_reminders,
+    "initialize_character": initialize_character,
+    "introduce_myself": introduce_myself,
 }
