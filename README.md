@@ -50,91 +50,108 @@ Olivia Lin is a gentle and introspective AI character, majoring in piano perform
 
 ## 🏗️ 架构 / Architecture
 
-项目由两个核心文件组成：
-
-- **toolkit_agent.py** — 主程序，承载林离的人设与对话逻辑，负责与大模型通信、解析工具调用、执行工具并返回结果
-- **tools.py** — 工具模块，包含所有可被调用的函数：音乐生成、音乐播放、记忆管理、数学计算等
-
 ```
 internet/
-├── toolkit_agent.py    # 林离的对话主程序 / Olivia's chat main program
-├── tools.py           # 工具模块 / Tools module
-├── run.sh             # 一键启动脚本 / One-click startup script
-├── workspace/         # 工作区 / Workspace
+├── toolkit_agent.py    # 主程序：林离的人设与对话逻辑 / Main program
+├── tools.py            # 工具模块：音乐生成、播放、记忆管理等 / Tools module
+├── game_gui.py         # 游戏界面：像素风格对话界面 / GUI interface
+├── run.sh              # 一键启动脚本 / One-click startup script
+├── venv/               # Python 虚拟环境 / Python virtual environment
+├── images/
+│   └── olivia.png      # 角色图片 / Character image
 ├── data/
-│   └── memory.json    # 记忆数据存储 / Memory storage
+│   └── memory.json     # 记忆数据存储 / Memory storage
+├── workspace/          # 工作区 / Workspace
 └── README.md           # 本文件 / This file
 ```
 
+### 文件说明
+
+| 文件 | 功能 |
+|---|---|
+| `toolkit_agent.py` | 核心对话逻辑，与大模型通信，解析工具调用 |
+| `tools.py` | 所有工具函数（音乐生成、播放、记忆管理等） |
+| `game_gui.py` | Pygame 图形界面，展示角色、对话框、日志 |
+| `run.sh` | 启动脚本，配置环境变量并运行 |
+
 ---
 
-## 📦 安装 / Installation
+## 📦 安装与运行 / Installation & Run
 
-### 中文
-
-1. **进入项目目录**
+### 步骤 1：克隆项目
 
 ```bash
-cd ~/Documents/trae_projects/internet
+git clone <repository-url>
+cd internet
 ```
 
-2. **安装依赖**
+### 步骤 2：创建虚拟环境（推荐）
 
 ```bash
-pip3 install openai pygame numpy magenta-rt
+python3 -m venv venv
+source venv/bin/activate  # macOS/Linux
+# 或
+venv\Scripts\activate     # Windows
 ```
 
-3. **配置 API 密钥**（在 run.sh 中设置）
+### 步骤 3：安装依赖
 
 ```bash
-# DeepSeek
-export API_KEY="sk-xxxxxxxxxxxxxxxx"
-export BASE_URL="https://api.deepseek.com/v1"
-export MODEL="deepseek-chat"
-
-# 或：硅基流动 / SiliconFlow
-export API_KEY="sk-xxxxxxxxxxxxxxxx"
-export BASE_URL="https://api.siliconflow.cn/v1"
-export MODEL="Qwen/Qwen2.5-7B-Instruct"
-
-# 或：通义千问
-export API_KEY="sk-xxxxxxxxxxxxxxxx"
-export BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
-export MODEL="qwen3-max"
+pip3 install openai pygame numpy magenta-rt pillow
 ```
 
-4. **运行**
+### 步骤 4：配置 API 密钥
+
+**方法一：修改 run.sh 文件**
+
+打开 `run.sh`，将 API_KEY 替换为你的密钥：
 
 ```bash
-./run.sh
-```
-
-### English
-
-1. **Enter project directory**
-
-```bash
-cd ~/Documents/trae_projects/internet
-```
-
-2. **Install dependencies**
-
-```bash
-pip3 install openai pygame numpy magenta-rt
-```
-
-3. **Configure API key** (set in run.sh)
-
-```bash
-export API_KEY="sk-xxxxxxxxxxxxxxxx"
+export API_KEY="sk-你的密钥"
 export BASE_URL="https://api.deepseek.com/v1"
 export MODEL="deepseek-chat"
 ```
 
-4. **Run**
+**方法二：创建密钥文件**
+
+创建 `~/.linli_api_key` 文件，写入你的 API 密钥：
 
 ```bash
-./run.sh
+echo "sk-你的密钥" > ~/.linli_api_key
+```
+
+然后修改 `run.sh` 中的 API_KEY 行：
+
+```bash
+export API_KEY="$(cat ~/.linli_api_key)"
+```
+
+### 步骤 5：配置 Magenta 模型路径
+
+音乐生成需要 Magenta RealTime 2 模型。默认路径为：
+
+```
+~/Documents/Magenta/magenta-rt-v2
+```
+
+确保模型目录存在且包含 `models/mrt2_small` 文件夹。
+
+如果你的模型在其他位置，需要修改 `tools.py` 中的模型路径配置。
+
+### 步骤 6：运行
+
+```bash
+bash run.sh
+```
+
+或直接运行：
+
+```bash
+source venv/bin/activate
+export API_KEY="sk-你的密钥"
+export BASE_URL="https://api.deepseek.com/v1"
+export MODEL="deepseek-chat"
+python3 game_gui.py
 ```
 
 ---
@@ -218,26 +235,13 @@ export MODEL="deepseek-chat"
 | `introduce_myself()` | 自我介绍 |
 | `daily_greeting()` | 每日问候 |
 
-### 数学工具 / Math Tools
-
-| 工具 / Tool | 说明 / Description |
-|---|---|
-| `add(arr)` | 求和 |
-| `sub(a, b)` | 减法 |
-| `mul(a, b)` | 乘法 |
-| `div(a, b)` | 除法 |
-| `sqrt(a)` | 平方根 |
-| `pow(a, b)` | 幂运算 |
-| `log(a)` | 自然对数 |
-| `sort_array(arr, descending)` | 数组排序 |
-
 ### 文件工具 / File Tools
 
 | 工具 / Tool | 说明 / Description |
 |---|---|
-| `write_file(filename, content)` | 写文件 |
-| `read_file(filename)` | 读文件 |
-| `run_python(filename)` | 执行 Python 脚本 |
+| `write_file(filename, content)` | 写文件到工作区 |
+| `read_file(filename)` | 读取工作区文件 |
+| `run_python(filename)` | 执行工作区的 Python 脚本 |
 
 ---
 
@@ -245,13 +249,44 @@ export MODEL="deepseek-chat"
 
 任何兼容 OpenAI 协议的 API 都能用：
 
-| 服务商 / Provider | 模型示例 / Example Model |
+| 服务商 / Provider | BASE_URL | 模型示例 / Example Model |
+|---|---|---|
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| 硅基流动 / SiliconFlow | `https://api.siliconflow.cn/v1` | `Qwen/Qwen2.5-7B-Instruct` |
+| 通义千问 / Qwen | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen3-max` |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` |
+| Ollama（本地） | `http://localhost:11434/v1` | `qwen3:4b` |
+
+---
+
+## 🖥️ 界面说明 / Interface Guide
+
+运行后会出现一个游戏风格的界面，包含三个区域：
+
+1. **角色展示区（左上）** — 显示林离的像素风格角色图片
+2. **对话框（左下）** — 显示对话内容，底部输入框用于输入消息
+3. **日志栏（右侧）** — 显示工具调用、执行结果等详细日志
+
+### 快捷键
+
+| 按键 | 功能 |
 |---|---|
-| DeepSeek | `deepseek-chat` |
-| 硅基流动 / SiliconFlow | `Qwen/Qwen2.5-7B-Instruct` |
-| 通义千问 / Qwen | `qwen3-max` |
-| OpenAI | `gpt-4o-mini` |
-| Ollama（本地） | `qwen3:4b` |
+| Enter | 发送消息 |
+| Backspace | 删除输入字符 |
+| Esc | 退出程序 |
+
+---
+
+## ✅ 环境检查 / Environment Check
+
+运行时会自动检查以下环境组件：
+
+- ✅ API_KEY 是否已配置
+- ✅ Python 包：openai, pygame, numpy, magenta-rt
+- ✅ Magenta 模型目录是否存在
+- ✅ mrt2_small 模型是否存在
+
+如果缺少任何组件，会显示错误信息并退出。
 
 ---
 

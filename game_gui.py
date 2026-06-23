@@ -15,17 +15,23 @@ from toolkit_agent import chat, API_KEY, set_log_callback
 SCREEN_WIDTH = 1024
 SCREEN_HEIGHT = 768
 
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GRAY = (64, 64, 64)
-LIGHT_GRAY = (128, 128, 128)
-DARK_GRAY = (32, 32, 32)
+BLACK = (10, 10, 10)
+WHITE = (245, 245, 245)
+GRAY = (100, 100, 100)
+LIGHT_GRAY = (160, 160, 160)
+DARK_GRAY = (40, 40, 40)
 PINK = (255, 182, 193)
 LIGHT_PINK = (255, 228, 225)
-BLUE = (135, 206, 235)
-LIGHT_BLUE = (176, 196, 222)
-PURPLE = (148, 0, 211)
-LIGHT_PURPLE = (221, 160, 221)
+BLUE = (60, 120, 180)
+LIGHT_BLUE = (120, 160, 200)
+PURPLE = (100, 80, 120)
+LIGHT_PURPLE = (140, 120, 160)
+GOLD = (212, 175, 55)
+WOOD_BROWN = (90, 51, 32)
+LAMP_GLOW = (255, 225, 160)
+LAMP_DARK = (200, 170, 100)
+WALL_COLOR = (230, 225, 215)
+WALL_DARK = (220, 215, 205)
 
 def get_chinese_font(size=24):
     fonts = [
@@ -88,8 +94,10 @@ class PixelPanel:
         self.height = height
         self.title = title
         self.color = color
-        self.border_color = LIGHT_GRAY
-        self.border_width = 2
+        self.border_color = GOLD
+        self.border_width = 3
+        self.inner_border_color = LIGHT_GRAY
+        self.inner_border_width = 1
     
     def draw(self, screen, font):
         pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
@@ -103,8 +111,36 @@ class PixelPanel:
         pygame.draw.rect(screen, self.border_color, 
                         (self.x + self.width - self.border_width, self.y, self.border_width, self.height))
         
+        pygame.draw.rect(screen, self.inner_border_color, 
+                        (self.x + self.border_width, self.y + self.border_width, 
+                         self.width - self.border_width * 2, self.inner_border_width))
+        pygame.draw.rect(screen, self.inner_border_color, 
+                        (self.x + self.border_width, self.y + self.height - self.border_width - self.inner_border_width, 
+                         self.width - self.border_width * 2, self.inner_border_width))
+        pygame.draw.rect(screen, self.inner_border_color, 
+                        (self.x + self.border_width, self.y + self.border_width, 
+                         self.inner_border_width, self.height - self.border_width * 2))
+        pygame.draw.rect(screen, self.inner_border_color, 
+                        (self.x + self.width - self.border_width - self.inner_border_width, 
+                         self.y + self.border_width, self.inner_border_width, self.height - self.border_width * 2))
+        
+        for i in range(8):
+            px = self.x + self.border_width + i * 4
+            py = self.y + self.border_width
+            pygame.draw.rect(screen, GOLD, (px, py, 2, 2))
+            
+            px = self.x + self.width - self.border_width - i * 4 - 2
+            pygame.draw.rect(screen, GOLD, (px, py, 2, 2))
+            
+            px = self.x + self.border_width + i * 4
+            py = self.y + self.height - self.border_width - 2
+            pygame.draw.rect(screen, GOLD, (px, py, 2, 2))
+            
+            px = self.x + self.width - self.border_width - i * 4 - 2
+            pygame.draw.rect(screen, GOLD, (px, py, 2, 2))
+        
         if self.title:
-            title_surface = font.render(self.title, LIGHT_BLUE, 'small')
+            title_surface = font.render(self.title, GOLD, 'small')
             screen.blit(title_surface, (self.x + 8, self.y + 4))
 
 class DialogBox:
@@ -113,7 +149,7 @@ class DialogBox:
         self.y = y
         self.width = width
         self.height = height
-        self.panel = PixelPanel(x, y, width, height, "对话")
+        self.panel = PixelPanel(x, y, width, height, "对话", LAMP_GLOW)
         self.messages = []
         self.input_text = ""
         self.max_messages = 20
@@ -145,7 +181,7 @@ class DialogBox:
         
         y_offset = 30
         for msg in visible_messages:
-            color = PINK if msg["speaker"] == "林离" else BLUE
+            color = (230, 80, 100) if msg["speaker"] == "林离" else (30, 80, 140)
             
             for i, line in enumerate(msg["speaker_lines"]):
                 speaker_surface = self.font.render(line, color, 'small')
@@ -153,22 +189,22 @@ class DialogBox:
                 y_offset += 22
             
             for i, line in enumerate(msg["text_lines"]):
-                text_surface = self.font.render(line, WHITE, 'small')
+                text_surface = self.font.render(line, BLACK, 'small')
                 screen.blit(text_surface, (self.x + 8, self.y + y_offset))
                 y_offset += 22
         
         input_box_y = self.y + self.height - 50
-        pygame.draw.rect(screen, GRAY, (self.x + 8, input_box_y, self.width - 16, 36))
-        pygame.draw.rect(screen, LIGHT_GRAY, (self.x + 8, input_box_y, self.width - 16, 2))
+        pygame.draw.rect(screen, LAMP_DARK, (self.x + 8, input_box_y, self.width - 16, 36))
+        pygame.draw.rect(screen, DARK_GRAY, (self.x + 8, input_box_y, self.width - 16, 2))
         
-        prompt_surface = self.font.render("你:", BLUE, 'small')
+        prompt_surface = self.font.render("你:", (30, 80, 140), 'small')
         screen.blit(prompt_surface, (self.x + 16, input_box_y + 8))
         
-        input_surface = self.font.render(self.input_text, WHITE, 'small')
+        input_surface = self.font.render(self.input_text, BLACK, 'small')
         screen.blit(input_surface, (self.x + 50, input_box_y + 8))
         
         cursor_x = self.x + 50 + self.font.size(self.input_text, 'small')[0]
-        pygame.draw.rect(screen, WHITE, (cursor_x, input_box_y + 8, 2, 16))
+        pygame.draw.rect(screen, BLACK, (cursor_x, input_box_y + 8, 2, 16))
 
 class LogPanel:
     def __init__(self, x, y, width, height):
@@ -176,7 +212,7 @@ class LogPanel:
         self.y = y
         self.width = width
         self.height = height
-        self.panel = PixelPanel(x, y, width, height, "日志")
+        self.panel = PixelPanel(x, y, width, height, "日志", LAMP_GLOW)
         self.logs = []
         self.max_logs = 50
         self.font = PixelFont()
@@ -193,23 +229,22 @@ class LogPanel:
         
         for log in reversed(self.logs):
             if log["type"] == "tool":
-                color = LIGHT_PURPLE
+                color = (100, 60, 100)
             elif log["type"] == "result":
-                color = PINK
+                color = (230, 80, 100)
             elif log["type"] == "error":
-                color = (255, 100, 100)
+                color = (200, 30, 30)
             else:
-                color = LIGHT_GRAY
+                color = BLACK
             
             lines = self.font.wrap_text(log['text'], self.width - 24, 'small')
             
             for line in reversed(lines):
+                if y_offset - 22 < 35:
+                    return
                 line_surface = self.font.render(line, color, 'small')
                 screen.blit(line_surface, (self.x + 8, y_offset - 22))
                 y_offset -= 22
-                
-                if y_offset < 30:
-                    return
 
 class CharacterSprite:
     def __init__(self, x, y, width, height):
@@ -228,17 +263,7 @@ class CharacterSprite:
         
         if os.path.exists(image_path):
             try:
-                img = pygame.image.load(image_path).convert_alpha()
-                img_width, img_height = img.get_size()
-                
-                scale_w = self.width / img_width
-                scale_h = self.height / img_height
-                scale = min(scale_w, scale_h)
-                
-                new_width = int(img_width * scale)
-                new_height = int(img_height * scale)
-                
-                return pygame.transform.smoothscale(img, (new_width, new_height))
+                return pygame.image.load(image_path).convert_alpha()
             except Exception as e:
                 print(f"加载图片失败: {e}")
         
@@ -282,22 +307,37 @@ class CharacterSprite:
     def draw(self, screen):
         self.panel.draw(screen, self.font)
         
+        border_padding = 6
+        
+        inner_width = self.width - border_padding * 2
+        inner_height = self.height - border_padding * 2
+        
         art_width, art_height = self.pixel_art.get_size()
-        center_x = self.x + (self.width - art_width) // 2
-        center_y = self.y + (self.height - art_height) // 2
-        screen.blit(self.pixel_art, (center_x, center_y))
+        scale_w = inner_width / art_width
+        scale_h = inner_height / art_height
+        scale = max(scale_w, scale_h)
+        
+        new_width = int(art_width * scale)
+        new_height = int(art_height * scale)
+        
+        scaled_art = pygame.transform.smoothscale(self.pixel_art, (new_width, new_height))
+        
+        center_x = self.x + (self.width - new_width) // 2
+        center_y = self.y + (self.height - new_height) // 2
+        
+        screen.blit(scaled_art, (center_x, center_y))
         
         if self.is_thinking:
-            bubble_y = self.y + 30
+            bubble_y = self.y + 35
             bubble_x = self.x + self.width // 2
             
-            bubble_size = 20 + (self.think_timer // 5) % 10
-            pygame.draw.circle(screen, WHITE, (bubble_x, bubble_y), bubble_size, 2)
+            bubble_size = 22 + (self.think_timer // 5) % 10
+            pygame.draw.circle(screen, GOLD, (bubble_x, bubble_y), bubble_size, 2)
             
             for i in range(3):
-                dot_y = bubble_y + i * 8 - 8
-                dot_size = 3 + (self.think_timer // 3 + i) % 4
-                pygame.draw.circle(screen, WHITE, (bubble_x, dot_y), dot_size)
+                dot_y = bubble_y + i * 10 - 10
+                dot_size = 4 + (self.think_timer // 3 + i) % 4
+                pygame.draw.circle(screen, PINK, (bubble_x, dot_y), dot_size)
 
 class GameGUI:
     def __init__(self):
@@ -326,17 +366,18 @@ class GameGUI:
     
     def _setup_background(self):
         self.background = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.background.fill(DARK_GRAY)
         
-        for i in range(0, SCREEN_WIDTH, 64):
-            for j in range(0, SCREEN_HEIGHT, 64):
-                if (i // 64 + j // 64) % 2 == 0:
-                    pygame.draw.rect(self.background, (30, 30, 35), (i, j, 64, 64))
+        self.background.fill((90, 51, 32))
+        
+        for i in range(0, SCREEN_WIDTH, 32):
+            for j in range(0, SCREEN_HEIGHT, 32):
+                if (i // 32 + j // 32) % 2 == 0:
+                    pygame.draw.rect(self.background, (76, 32, 19), (i, j, 32, 32))
         
         for i in range(0, SCREEN_WIDTH, 16):
-            pygame.draw.line(self.background, (25, 25, 30), (i, 0), (i, SCREEN_HEIGHT))
+            pygame.draw.line(self.background, (50, 25, 12), (i, 0), (i, SCREEN_HEIGHT))
         for j in range(0, SCREEN_HEIGHT, 16):
-            pygame.draw.line(self.background, (25, 25, 30), (0, j), (SCREEN_WIDTH, j))
+            pygame.draw.line(self.background, (50, 25, 12), (0, j), (SCREEN_WIDTH, j))
     
     def _on_log(self, msg, type="info"):
         self.log_queue.put((msg, type))
