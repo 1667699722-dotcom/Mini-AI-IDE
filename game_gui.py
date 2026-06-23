@@ -4,6 +4,7 @@ import json
 import pygame
 import threading
 import time
+import shutil
 from queue import Queue
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
@@ -475,7 +476,22 @@ def check_environment():
     
     return errors
 
+def clean_workspace():
+    workspace_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "workspace")
+    if os.path.exists(workspace_dir):
+        for item in os.listdir(workspace_dir):
+            item_path = os.path.join(workspace_dir, item)
+            try:
+                if os.path.isfile(item_path):
+                    os.remove(item_path)
+                elif os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
+            except Exception as e:
+                pass
+
 if __name__ == "__main__":
+    clean_workspace()
+    
     errors = check_environment()
     
     if errors:
