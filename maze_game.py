@@ -425,7 +425,8 @@ class MazeGame:
             self.check_command_file()
             
             if self.player_pos == self.maze.end:
-                self.reset()
+                self.init_json_file()
+                self.running = False
             
             self.draw()
             clock.tick(30)

@@ -16,8 +16,8 @@
   },
   "player_position": {
     "__description": "\u73a9\u5bb6\u5f53\u524d\u4f4d\u7f6e\u5750\u6807",
-    "x": 11,
-    "y": 3
+    "x": 19,
+    "y": 19
   },
   "detected_cells": [],
   "total_detected": 0
